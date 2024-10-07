@@ -1,0 +1,74 @@
+name: Rename the project from template
+
+on:
+  create
+
+permissions: write-all
+
+jobs:
+  rename-project:
+    if: github.repository != 'evmckinney9/python-template' && github.event.ref == github.event.master_branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Check if template_flag.yml exists
+        id: check-template
+        if: ${{ hashFiles('.github/template_flag.yml') != '' }}
+        run: |
+          echo "rename_continue=true" >> $GITHUB_ENV
+
+      - uses: actions/github-script@v6
+        if: env.rename_continue == 'true'
+        id: fetch-repo-and-user-details
+        with:
+          script: |
+            const query = `query($owner:String!, $name:String!) {
+              repository(owner:$owner, name:$name) {
+                name
+                description
+                owner {
+                  login
+                  ... on User {
+                    name
+                  }
+                  ... on Organization {
+                    name
+                  }
+                }
+              }
+            }`;
+            const variables = {
+              owner: context.repo.owner,
+              name: context.repo.repo
+            }
+            const result = await github.graphql(query, variables)
+            console.log(result)
+            return result
+
+      - name: Rename the project
+        if: env.rename_continue == 'true'
+        env:
+          INFO: ${{ steps.fetch-repo-and-user-details.outputs.result }}
+        run: |
+          REPO_NAME=$(echo $INFO | jq -r '.repository.name')
+          REPO_OWNER=$(echo $INFO | jq -r '.repository.owner.login')
+          REPO_OWNER_NAME="$(echo $INFO | jq -r '.repository.owner.name')"
+          REPO_DESC="$(echo $INFO | jq -r '.repository.description')"
+          echo "Renaming project to $REPO_NAME"
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+          echo "Description: $REPO_DESC"
+          echo "Owner name: $REPO_OWNER_NAME"
+          echo "Owner username: $REPO_OWNER"
+          .github/scripts/rename_project.sh -a "$REPO_OWNER_NAME" -n "$REPO_NAME" -u "$REPO_OWNER" -d "$REPO_DESC"
+
+          convert .github/banner.png -gravity center -pointsize 300 -fill black -stroke white -strokewidth 2 -font "Lato-Heavy" -annotate +0+0 "${{ env.REPO_NAME }}" .github/output_banner.png
+          mv .github/output_banner.png .github/banner.png
+
+      - name: Commit changes and push back to GitHub
+        if: env.rename_continue == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          push_options: --force
