@@ -1,20 +1,40 @@
 cff-version: 1.2.0
-message: "If you use this work, please cite the following paper."
+message: "If you use this software, please cite it as below."
 authors:
-  - family-names: McKinney
-    given-names: Evan
-  - family-names: Falstin
-    given-names: Girgis
-  - family-names: Yusuf
-    given-names: Israa
-  - family-names: Agarwal
-    given-names: Gaurav
-  - family-names: Hatridge
-    given-names: Michael
-  - family-names: Jones
-    given-names: Alex K
+  - family-names: "McKinney"
+    given-names: "Evan"
+  - family-names: "Falstin"
+    given-names: "Girgis"
+  - family-names: "Yusuf"
+    given-names: "Israa"
+  - family-names: "Agarwal"
+    given-names: "Gaurav"
+  - family-names: "Hatridge"
+    given-names: "Michael"
+  - family-names: "Jones"
+    given-names: "Alex K"
 title: "Towards Error Budgeting for Superconducting Modular Quantum Architecture Designs"
 version: "1.0"
 doi: "10.48550/arXiv.2409.18262"
-date-released: "2024-01-01"
+date-released: "2024-09-24"
 url: "https://arxiv.org/abs/2409.18262"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "McKinney"
+      given-names: "Evan"
+    - family-names: "Falstin"
+      given-names: "Girgis"
+    - family-names: "Yusuf"
+      given-names: "Israa"
+    - family-names: "Agarwal"
+      given-names: "Gaurav"
+    - family-names: "Hatridge"
+      given-names: "Michael"
+    - family-names: "Jones"
+      given-names: "Alex K"
+  doi: "10.48550/arXiv.2409.18262"
+  journal: "arXiv preprint arXiv:2409.18262"
+  month: 9
+  title: "Towards Error Budgeting for Superconducting Modular Quantum Architecture Designs"
+  year: 2024
