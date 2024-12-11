@@ -494,4 +494,3 @@ measure reg[6] -> c[6];
 measure reg[7] -> c[7];
 measure reg[8] -> c[8];
 measure reg[9] -> c[9];
-

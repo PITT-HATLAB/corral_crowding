@@ -13,7 +13,7 @@ repos:
       - id: conventional-commits
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.7.2"
+    rev: "v0.8.2"
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
@@ -46,7 +46,7 @@ repos:
     rev: 24.10.0
     hooks:
       - id: black-jupyter
-        language_version: python3.9
+        language_version: python3.11
 
   # seems this has a bug with the latest version relating to language: python_venv
   # - repo: https://github.com/PyCQA/docformatter
