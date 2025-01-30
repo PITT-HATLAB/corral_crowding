@@ -13,7 +13,7 @@ repos:
       - id: conventional-commits
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.8.2"
+    rev: "v0.9.4"
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
@@ -37,16 +37,16 @@ repos:
         args: [--autofix]
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 6.0.0
     hooks:
       - id: isort
         name: isort (python)
 
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black-jupyter
-        language_version: python3.11
+        language_version: python3.12
 
   # seems this has a bug with the latest version relating to language: python_venv
   # - repo: https://github.com/PyCQA/docformatter
