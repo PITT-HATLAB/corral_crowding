@@ -1,10 +1,11 @@
 import rustworkx as rx
-from mqt.bench import CompilerSettings, QiskitSettings, TKETSettings, get_benchmark
 
 # !pip install mqt.bench
 from qiskit import transpile
 from qiskit.transpiler import CouplingMap
 from rustworkx.visualization import graphviz_draw, mpl_draw
+
+# from mqt.bench import CompilerSettings, QiskitSettings, TKETSettings, get_benchmark
 
 
 def build_graphs(snails, qubits, edges):
