@@ -22,10 +22,11 @@ dependencies = [
     "matplotlib",
     "SciencePlots",
     "LovelyPlots",
+
 ]
 
 [project.optional-dependencies]
-dev = ["ipykernel", "pre-commit", "pylatexenc", "ipywidgets"]
+dev = ["ipykernel", "pre-commit", "pylatexenc", "ipywidgets", "ipympl"]
 format = [
     "pre-commit",
     "black[jupyter]",
