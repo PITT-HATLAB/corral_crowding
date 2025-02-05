@@ -12,11 +12,9 @@ def simulate_infidelity(
     infidelity_list = []
 
     for detuning in detuning_list:
-        spectator_amplitude = (2 * prefactor) / (
-            2 * np.pi * detuning * 1e6
-        )  # Convert MHz → Hz
-        H = intended_term + spectator_amplitude * spectator_term
-        U_t_f = (-1.0j * (np.pi / 2) * H).expm()
+        spectator_amplitude = (2 * prefactor) / (2 * np.pi * detuning * 1e6)
+        H = (np.pi / 2) * intended_term + spectator_amplitude * spectator_term
+        U_t_f = (-1.0j * H).expm()
         fidelity = 1 - average_gate_fidelity(U_t_f, ideal_gate)
         infidelity_list.append(fidelity)
 
