@@ -21,19 +21,35 @@ def simulate_infidelity(
     return np.array(infidelity_list)
 
 
-def decay_fit(detuning, a, b, c, d):
-    """Power law function for fitting infidelity curves."""
-    return a * ((detuning + d) ** -b) + c
+# def decay_fit(detuning, a, b, c, d):
+#     """Power law function for fitting infidelity curves."""
+#     return a * ((detuning + d) ** -b) + c
+
+
+# def fit_infidelity(detuning_list, infidelity_list):
+#     """Fits the simulated infidelity data to the power-law model.
+
+#     Returns:
+#         - Best-fit parameters (a, b, c)
+#     """
+#     p0 = [1, 2, 0, 0]  # Initial guess
+#     params, _ = curve_fit(decay_fit, detuning_list, infidelity_list, p0=p0)
+#     return params
+
+import numpy as np
+from scipy.optimize import curve_fit
+
+
+def decay_fit(detuning, x0, x1):
+    """Modified power law function for fitting infidelity curves."""
+    return x0 * ((2 / (detuning + x1)) ** 2)
 
 
 def fit_infidelity(detuning_list, infidelity_list):
-    """Fits the simulated infidelity data to the power-law model.
-
-    Returns:
-        - Best-fit parameters (a, b, c)
-    """
-    p0 = [1, 2, 0, 0]  # Initial guess
+    """Fits the infidelity data to the modified power-law model with better convergence."""
+    p0 = [1, 1]  # Improved initial guess
     params, _ = curve_fit(decay_fit, detuning_list, infidelity_list, p0=p0)
+    # print(params)
     return params
 
 
@@ -42,9 +58,9 @@ def compute_infidelity_parameters(detuning_list, lambdaq, eta, alpha, g3):
     """Generates (a, b, c) infidelity parameters dynamically from QuTiP simulations."""
     # Compute prefactors
     intra_prefactors = {
-        "qubit-qubit": 6 * eta * lambdaq**2 * g3,
         "snail-qubit": 6 * eta * lambdaq * g3,
         "qubit-sub": 3 * eta**2 * lambdaq * g3,
+        "qubit-qubit": 6 * eta * lambdaq**2 * g3,
     }
 
     inter_prefactors = {
