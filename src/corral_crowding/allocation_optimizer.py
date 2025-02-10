@@ -11,6 +11,10 @@ from tqdm import tqdm
 
 from corral_crowding.detuning_fit import compute_infidelity_parameters, decay_fit
 from corral_crowding.module_graph import QuantumModuleGraph
+from corral_crowding.speedlimit_fit import (
+    lifetime_decay_fit,
+    speedlimit_infidelity_params,
+)
 
 
 class GateFidelityOptimizer:
@@ -22,9 +26,11 @@ class GateFidelityOptimizer:
         g3,
         alpha=0.12,  # 120Mhz
         min_bare_space_ghz=0.2,  # 200mhz
+        T_1=120e-6,
         qubit_bounds=(3.3, 5.7),
         snail_bounds=(4.2, 4.7),
         drop_k=0,  # 0 for best, 1 to drop worst, 2 to drop 2 worst, etc
+        use_lifetime=False,
     ):
         self.lambdaq = lambdaq
         self.eta = eta
@@ -41,6 +47,12 @@ class GateFidelityOptimizer:
         detuning_list = np.linspace(50, 1000, 64)
         self.infidelity_params, _ = compute_infidelity_parameters(
             detuning_list, lambdaq=lambdaq, eta=eta, alpha=120e6, g3=g3
+        )
+        ###
+        self.use_lifetime = use_lifetime
+        avg_snail = (snail_bounds[0] + snail_bounds[1]) / 2
+        self.speedlimit_params, _ = speedlimit_infidelity_params(
+            f_SNAIL=avg_snail, t_f_calib=250e-9, T1=T_1, g3=g3, lambdaq=lambdaq
         )
 
     def _unit_crosstalk(self, intended_freq, spectator_key, spectator_freq):
@@ -61,9 +73,16 @@ class GateFidelityOptimizer:
 
         return decay_fit(units_distance, *params)
 
+    def _unit_decay(self, intended_freq, snail_sub):
+        if self.use_lifetime:
+            distance = np.abs(intended_freq - snail_sub)
+            units_distance = distance * 1e3  # Convert GHz → MHz
+            return lifetime_decay_fit(units_distance, *self.speedlimit_params)
+        return 0
+
     def _compute_gate_infidelity(self, edge, interaction_data):
         driven_freq = interaction_data["qubit-qubit"][edge]
-        gate_infidelities = sum(
+        gate_infidelity = sum(
             self._unit_crosstalk(driven_freq, interaction_type, spectator_freq)
             for interaction_type in ["qubit-qubit", "snail-qubit", "qubit-sub"]
             for spectator_edge, spectator_freq in interaction_data[
@@ -71,7 +90,14 @@ class GateFidelityOptimizer:
             ].items()
             if spectator_edge != edge
         )
-        return gate_infidelities
+        # to combine coherent and incoherent fidelities, multiply (ESP)
+        # however our variables are infidelities, so take 1-term
+        # multiply (1-infidelity)(1-lifetime loss)
+        spectator_freq = interaction_data["snail-sub"]["SNAIL"]
+        gate_infidelity_with_lifetime = 1 - (1 - gate_infidelity) * (
+            1 - self._unit_decay(driven_freq, spectator_freq)
+        )
+        return gate_infidelity, gate_infidelity_with_lifetime
 
     def _compute_bare_infidelity(self, edge, interaction_data):
         # for each qubit-resonance, add penality of 1 if closer than min_bare_space_ghz to
@@ -103,7 +129,7 @@ class GateFidelityOptimizer:
             qubit_frequencies, snail_frequency
         )
         two_qubit_crowding = [
-            self._compute_gate_infidelity(edge, interaction_data)
+            self._compute_gate_infidelity(edge, interaction_data)[1]
             for edge in interaction_data["qubit-qubit"]
         ]
         two_qubit_crowding = sum(two_qubit_crowding[self.drop_k :])
@@ -150,7 +176,7 @@ class GateFidelityOptimizer:
             qubit_frequencies, snail_frequency
         )
         gate_infidelities = {
-            edge: self._compute_gate_infidelity(edge, interaction_data)
+            edge: self._compute_gate_infidelity(edge, interaction_data)[1]
             for edge in list(interaction_data["qubit-qubit"])[self.drop_k :]
         }
 
@@ -170,19 +196,42 @@ class GateFidelityOptimizer:
             qubit_frequencies, snail_frequency
         )
 
+        if not self.use_lifetime:
+            print("Lifetime loss not considered.")
+
         print("Qubit Frequencies:", qubit_frequencies, "GHz")
         print(f"SNAIL Frequency: {snail_frequency} GHz")
         print("Gate Infidelities:")
+
         gate_infidelities = {
             edge: self._compute_gate_infidelity(edge, interaction_data)
             for edge in list(interaction_data["qubit-qubit"])[self.drop_k :]
         }
-        for edge, infidelity in gate_infidelities.items():
-            freq = interaction_data["qubit-qubit"][edge]
-            print(f"  Gate {edge}:{freq:.6f} GHz → Infidelity: {infidelity:.6f}")
 
-        avg_gate_infidelity = gmean(list(gate_infidelities.values()))
-        print(f"\nAverage Gate Infidelity: {avg_gate_infidelity:.6f}")
+        for edge, (
+            infidelity_no_lifetime,
+            infidelity_with_lifetime,
+        ) in gate_infidelities.items():
+            freq = interaction_data["qubit-qubit"][edge]
+            print(
+                f"  Gate {edge}: {freq:.6f} GHz → "
+                f"Infidelity (no lifetime loss): {infidelity_no_lifetime:.6e}, "
+                f"Infidelity (with lifetime loss): {infidelity_with_lifetime:.6e}"
+            )
+
+        avg_infidelity_no_lifetime = gmean(
+            [inf[0] for inf in gate_infidelities.values()]
+        )
+        avg_infidelity_with_lifetime = gmean(
+            [inf[1] for inf in gate_infidelities.values()]
+        )
+
+        print(
+            f"\nAverage Gate Infidelity (no lifetime loss): {avg_infidelity_no_lifetime:.6e}"
+        )
+        print(
+            f"Average Gate Infidelity (with lifetime loss): {avg_infidelity_with_lifetime:.6e}"
+        )
 
         self.module_graph.plot_graph(qubit_frequencies, snail_frequency)
         self.module_graph.plot_interaction_frequencies(

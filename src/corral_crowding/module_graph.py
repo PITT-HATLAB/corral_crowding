@@ -86,8 +86,8 @@ class QuantumModuleGraph:
                 "qubit-qubit": "blue",
                 "qubit-resonance": "green",
                 "snail-qubit": "orange",
-                "qubit-sub": "lightgreen",
-                "snail-sub": "lightcoral",
+                "qubit-sub": "greenyellow",
+                "snail-sub": "magenta",
                 "snail-resonance": "red",
             }
             for interaction_type, freqs in interaction_freqs.items():
