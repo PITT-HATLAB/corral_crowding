@@ -86,7 +86,7 @@ class QuantumModuleGraph:
                 "qubit-qubit": "blue",
                 "qubit-resonance": "green",
                 "snail-qubit": "orange",
-                "qubit-sub": "greenyellow",
+                "qubit-sub": "gray",
                 "snail-sub": "magenta",
                 "snail-resonance": "red",
             }

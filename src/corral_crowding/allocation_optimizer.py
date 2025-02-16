@@ -132,7 +132,10 @@ class GateFidelityOptimizer:
             self._compute_gate_infidelity(edge, interaction_data)[1]
             for edge in interaction_data["qubit-qubit"]
         ]
-        two_qubit_crowding = sum(two_qubit_crowding[self.drop_k :])
+        # two_qubit_crowding = sum(two_qubit_crowding[self.drop_k :])
+        two_qubit_crowding = sum(
+            sorted(two_qubit_crowding, reverse=True)[self.drop_k :]
+        )
         one_qubit_crowding = sum(
             self._compute_bare_infidelity(edge, interaction_data)
             for edge in interaction_data["qubit-resonance"]
@@ -163,7 +166,7 @@ class GateFidelityOptimizer:
         print(best_result.message)
         return self.best_frequencies, self.best_cost
 
-    def get_final_average(self):
+    def get_final_infidelities(self):
         if self.best_frequencies is None:
             print("No optimized frequencies available.")
             return
@@ -177,11 +180,13 @@ class GateFidelityOptimizer:
         )
         gate_infidelities = {
             edge: self._compute_gate_infidelity(edge, interaction_data)[1]
-            for edge in list(interaction_data["qubit-qubit"])[self.drop_k :]
+            for edge in list(interaction_data["qubit-qubit"])
         }
 
-        avg_gate_infidelity = gmean(list(gate_infidelities.values()))
-        return avg_gate_infidelity
+        return sorted(gate_infidelities.values(), reverse=True)[self.drop_k :]
+
+        # avg_gate_infidelity = gmean(list(gate_infidelities.values()))
+        # return avg_gate_infidelity
 
     def report_results(self):
         if self.best_frequencies is None:
@@ -205,7 +210,7 @@ class GateFidelityOptimizer:
 
         gate_infidelities = {
             edge: self._compute_gate_infidelity(edge, interaction_data)
-            for edge in list(interaction_data["qubit-qubit"])[self.drop_k :]
+            for edge in list(interaction_data["qubit-qubit"])
         }
 
         for edge, (
@@ -219,12 +224,11 @@ class GateFidelityOptimizer:
                 f"Infidelity (with lifetime loss): {infidelity_with_lifetime:.6e}"
             )
 
-        avg_infidelity_no_lifetime = gmean(
-            [inf[0] for inf in gate_infidelities.values()]
-        )
-        avg_infidelity_with_lifetime = gmean(
-            [inf[1] for inf in gate_infidelities.values()]
-        )
+        gate_infidelities = sorted(list(gate_infidelities.values()), reverse=True)[
+            self.drop_k :
+        ]
+        avg_infidelity_no_lifetime = gmean([inf[0] for inf in gate_infidelities])
+        avg_infidelity_with_lifetime = gmean([inf[1] for inf in gate_infidelities])
 
         print(
             f"\nAverage Gate Infidelity (no lifetime loss): {avg_infidelity_no_lifetime:.6e}"
