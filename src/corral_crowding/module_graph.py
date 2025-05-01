@@ -120,6 +120,7 @@ class QuantumModuleGraph:
                 ncol=2,
                 fontsize=10,
             )
+        # plt.savefig("interaction_frequencies.pdf", bbox_inches="tight")
         plt.show()
 
     def get_graph(self):
