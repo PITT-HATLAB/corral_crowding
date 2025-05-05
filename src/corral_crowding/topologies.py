@@ -1,15 +1,17 @@
-import rustworkx as rx
-from mqt.bench import CompilerSettings, QiskitSettings, TKETSettings, get_benchmark
+import networkx as nx
 
 # !pip install mqt.bench
 from qiskit import transpile
 from qiskit.transpiler import CouplingMap
-from rustworkx.visualization import graphviz_draw, mpl_draw
+
+# from rustworkx.visualization import graphviz_draw, mpl_draw
+
+# from mqt.bench import CompilerSettings, QiskitSettings, TKETSettings, get_benchmark
 
 
 def build_graphs(snails, qubits, edges):
     # Create the snail-qubit graph
-    snail_qubit_graph = rx.PyGraph()
+    snail_qubit_graph = nx.Graph()
     node_to_index = {
         node: idx for idx, node in enumerate(snails + qubits)
     }  # Map node values to graph indices
@@ -19,7 +21,7 @@ def build_graphs(snails, qubits, edges):
     )
 
     # Create the qubit connectivity graph
-    qubit_connectivity = rx.PyGraph()
+    qubit_connectivity = nx.Graph()
     qubit_to_index = {
         qubit: idx for idx, qubit in enumerate(qubits)
     }  # Map qubit values to graph indices
@@ -369,3 +371,41 @@ edges_denselattice = [
     (28, 36),
 ]
 denselattice = [snail_denselattice, qubits_denselattice, edges_denselattice]
+
+best_snails = [0, 1, 2, 3, 4, 5, 6, 7]
+best_qubits = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+best_edges = [
+    (1, 21),
+    (1, 22),
+    (1, 23),
+    (1, 24),
+    (5, 18),
+    (5, 19),
+    (5, 20),
+    (5, 24),
+    (6, 15),
+    (6, 16),
+    (6, 17),
+    (6, 23),
+    (7, 12),
+    (7, 13),
+    (7, 14),
+    (7, 22),
+    (8, 9),
+    (8, 10),
+    (8, 11),
+    (8, 21),
+    (2, 11),
+    (2, 14),
+    (2, 17),
+    (2, 20),
+    (3, 10),
+    (3, 13),
+    (3, 16),
+    (3, 19),
+    (4, 9),
+    (4, 12),
+    (4, 15),
+    (4, 18),
+]
+best = [best_snails, best_qubits, best_edges]
