@@ -90,12 +90,24 @@ class QuantumModuleGraph:
                 "snail-sub": "magenta",
                 "snail-resonance": "red",
             }
+            legend_labels = {
+                "qubit-qubit": "Two-Qubit Gates",
+                "qubit-resonance": "Qubit Modes",
+                "snail-qubit": "SNAIL Qubit Difference",
+                "qubit-sub": "Qubit Subharmonic",
+                "snail-sub": "SNAIL Subharmonic",
+                "snail-resonance": "SNAIL Mode",
+            }
             for interaction_type, freqs in interaction_freqs.items():
                 if not freqs:
                     continue
                 color = color_map.get(interaction_type, "black")
+                if interaction_type in {"snail-resonance", "qubit-resonance"}:
+                    linestyle = "-"
+                else:
+                    linestyle = (0, (2.1, 1.4))  # fine dashed line
                 label = (
-                    interaction_type.replace("-", " ").title()
+                    legend_labels[interaction_type]
                     if interaction_type not in added_labels
                     else ""
                 )
@@ -103,24 +115,42 @@ class QuantumModuleGraph:
                     ax.axvline(
                         freq,
                         color=color,
-                        linestyle="-",
+                        linestyle=linestyle,
                         linewidth=1.5,
                         alpha=0.8,
                         label=label,
                     )
                     added_labels.add(interaction_type)
             ax.set_xlabel("Frequency (GHz)")
+
+            # Ordered legend (manually controlled order)
             handles, labels = plt.gca().get_legend_handles_labels()
             by_label = dict(zip(labels, handles))
+            legend_order = [
+                "Qubit Modes",
+                "SNAIL Mode",
+                "Two-Qubit Gates",
+                "Qubit Subharmonic",
+                "SNAIL Qubit Difference",
+                "SNAIL Subharmonic",
+            ]
+            ordered_handles = [
+                by_label[label] for label in legend_order if label in by_label
+            ]
+            ordered_labels = [label for label in legend_order if label in by_label]
+
             ax.legend(
-                by_label.values(),
-                by_label.keys(),
+                ordered_handles,
+                ordered_labels,
                 loc="upper center",
-                bbox_to_anchor=(0.5, -0.25),
+                bbox_to_anchor=(0.5, -0.32),
                 ncol=2,
-                fontsize=10,
+                fontsize=8,
+                columnspacing=0.8,
+                handlelength=1.2,
             )
-        # plt.savefig("interaction_frequencies.pdf", bbox_inches="tight")
+
+        plt.savefig("corral_crowding_4q_optimal_frequencies.pdf", bbox_inches="tight")
         plt.show()
 
     def get_graph(self):
